@@ -1,0 +1,101 @@
+version: '3.7'
+
+services:
+
+  workspace:
+    build:
+      context: ./docker/workspace
+      args:
+        USERNAME: "vscode"
+        USER_UID: 1000
+        USER_GID: 1000
+    tty: true
+    volumes:
+      - ${VAGRANT_DEVCONTAINER_PATH}../:/var/www
+      - ${VAGRANT_DEVCONTAINER_PATH}./docker/workspace/config/php.ini:/etc/php/7.3/cli/conf.d/99-php.ini
+    environment:
+      TZ: Asia/Tokyo
+    working_dir: /var/www
+
+  selenium:
+    image: selenium/hub
+
+  selenium-chrome:
+    image: selenium/node-chrome-debug
+    environment:
+      - HUB_PORT_4444_TCP_ADDR=selenium
+      - HUB_PORT_4444_TCP_PORT=4444
+    depends_on:
+      - selenium
+
+  nginx:
+    build: ./docker/nginx
+    ports:
+      - "${DOCKER_DESKTOP_IP_ADDRESS_SETTING}80:80"
+      - "${DOCKER_DESKTOP_IP_ADDRESS_SETTING}443:443"
+    volumes:
+      - ${VAGRANT_DEVCONTAINER_PATH}./docker/nginx/config:/etc/nginx/conf.d/
+      - ${VAGRANT_DEVCONTAINER_PATH}../.docker/data/nginx/log:/var/log/nginx
+      - ${VAGRANT_DEVCONTAINER_PATH}../:/var/www
+    environment:
+      TZ: Asia/Tokyo
+    depends_on:
+      - php
+      - node
+
+  php:
+    build: ./docker/php
+    volumes:
+      - ${VAGRANT_DEVCONTAINER_PATH}./docker/php/config/php.ini:/usr/local/etc/php/php.ini
+      - ${VAGRANT_DEVCONTAINER_PATH}./docker/php/config/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ${VAGRANT_DEVCONTAINER_PATH}../:/var/www
+    working_dir: /var/www
+
+  node:
+    build: ./docker/node
+    ports:
+      - "${DOCKER_DESKTOP_IP_ADDRESS_SETTING}3000:3000"
+    tty: true
+    volumes:
+      - ${VAGRANT_DEVCONTAINER_PATH}../:/var/www
+    working_dir: /var/www
+
+  mariadb:
+    image: mariadb:10.4
+    ports:
+      - "${DOCKER_DESKTOP_IP_ADDRESS_SETTING}3306:3306"
+    volumes:
+      - mariadb:/var/lib/mysql
+      - ${VAGRANT_DEVCONTAINER_PATH}./docker/mariadb/config/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      TZ: "Asia/Tokyo"
+
+  postgres:
+    build: ./docker/postgres
+    ports:
+      - "${DOCKER_DESKTOP_IP_ADDRESS_SETTING}5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+
+  redis:
+    image: redis:6.0
+    ports:
+      - "${DOCKER_DESKTOP_IP_ADDRESS_SETTING}6379:6379"
+    volumes:
+      - redis:/data
+
+volumes:
+  mariadb:
+    driver: local
+  postgres:
+    driver: local
+  redis:
+    driver: local

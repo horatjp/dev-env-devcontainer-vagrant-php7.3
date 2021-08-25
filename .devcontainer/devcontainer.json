@@ -1,0 +1,28 @@
+{
+	"name": "devcontainer",
+
+	"dockerComposeFile": [
+		"docker-compose.yml"
+    ],
+
+    "service": "workspace",
+    "workspaceFolder": "/var/www",
+    "remoteUser": "vscode",
+
+    "extensions": [
+        "CoenraadS.bracket-pair-colorizer-2",
+        "streetsidesoftware.code-spell-checker",
+        "mikestead.dotenv",
+        "EditorConfig.EditorConfig",
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+        "onecentlin.laravel-blade",
+        "onecentlin.laravel5-snippets",
+        "emilast.LogFileHighlighter",
+        "bmewburn.vscode-intelephense-client",
+        "mechatroner.rainbow-csv",
+        "chrmarti.regex",
+        "Gruntfuggly.todo-tree",
+        "funkyremi.vscode-google-translate"
+    ]
+}
